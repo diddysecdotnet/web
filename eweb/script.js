@@ -1,95 +1,155 @@
-// 🔥 Firebase config (REPLACE THIS)
+// 🔥 FIREBASE CONFIG (PASTE YOURS HERE)
 const firebaseConfig = {
-    apiKey: "AIzaSyAl7EzbvnOe2wZtJ4xVK09ejigrmSmk7B0",
-    authDomain: "new-web-frfrfr.firebaseapp.com",
-    projectId: "new-web-frfrfr",
-    storageBucket: "new-web-frfrfr.firebasestorage.app",
-    messagingSenderId: "777483484699",
-    appId: "1:777483484699:web:2aa158081e42a2000842beD"
+  apiKey: "AIzaSyBA4qSGPN-GQ4AwB56aSS_7enWyHePb6z8",
+  authDomain: "diddysec.firebaseapp.com",
+  projectId: "diddysec",
+  storageBucket: "diddysec.firebasestorage.app",
+  messagingSenderId: "758648114224",
+  appId: "1:758648114224:web:a4c127015d6d4c6c8671f5"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let profile = {};
+
+// ---------------- AUTH ----------------
+function signup() {
+  auth.createUserWithEmailAndPassword(email.value, password.value);
+}
+
+function login() {
+  auth.signInWithEmailAndPassword(email.value, password.value);
+}
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    authBox.style.display = "none";
+    app.style.display = "block";
+
+    status.innerText = "Logged in: " + user.email;
+
+    loadProfile();
+    loadFeed();
+  }
+});
+
+// ---------------- PROFILE ----------------
+function saveProfile() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  profile = {
+    name: name.value,
+    tag: tag.value,
+    bio: bio.value,
+    spotify: spotify.value,
+
+    socials: {
+      discord: discord.value,
+      instagram: instagram.value,
+      tiktok: tiktok.value,
+      github: github.value
+    }
   };
-  
-  // INIT FIREBASE
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const friendsRef = db.collection("friends");
-  
-  let friends = [];
-  
-  // 📡 LOAD REAL-TIME DATA
-  function loadFriends() {
-    friendsRef.onSnapshot(snapshot => {
-      friends = [];
-      snapshot.forEach(doc => friends.push(doc.data()));
-      renderFriends();
+
+  db.collection("users").doc(user.uid).set({ profile });
+
+  renderProfile();
+}
+
+function loadProfile() {
+  const user = auth.currentUser;
+
+  db.collection("users").doc(user.uid).get()
+    .then(doc => {
+      if (doc.exists) {
+        profile = doc.data().profile;
+
+        name.value = profile.name || "";
+        tag.value = profile.tag || "";
+        bio.value = profile.bio || "";
+        spotify.value = profile.spotify || "";
+
+        renderProfile();
+      }
     });
-  }
-  
-  // 🧑‍🤝‍🧑 RENDER FRIEND CARDS
-  function renderFriends() {
-    const container = document.getElementById("friendsContainer");
-    container.innerHTML = "";
-  
-    friends.forEach(f => {
-      container.innerHTML += `
-        <div class="friend-card" onclick="openProfile('${f.id}')">
-          <img src="${f.avatar}">
-          <h3>${f.nickname}</h3>
-          <p>❤️ ${f.likes} | 👥 ${f.followers}</p>
-        </div>
-      `;
+}
+
+// 🎵 SPOTIFY EMBED
+function getSpotifyEmbed(url) {
+  if (!url) return "";
+
+  const match = url.match(/(track|album|playlist)\/([a-zA-Z0-9]+)/);
+  if (!match) return "";
+
+  return `
+    <iframe
+      style="border-radius:12px"
+      src="https://open.spotify.com/embed/${match[1]}/${match[2]}"
+      width="100%"
+      height="152"
+      frameborder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+    </iframe>
+  `;
+}
+
+// ---------------- RENDER PROFILE ----------------
+function renderProfile() {
+  profileDisplay.innerHTML = `
+    <h3>${profile.name || ""}</h3>
+    <p>${profile.tag || ""}</p>
+    <p>${profile.bio || ""}</p>
+
+    <hr/>
+
+    ${profile.socials?.discord ? "💬 " + profile.socials.discord + "<br>" : ""}
+    ${profile.socials?.instagram ? `<a href="${profile.socials.instagram}" target="_blank">📸 Instagram</a><br>` : ""}
+    ${profile.socials?.tiktok ? `<a href="${profile.socials.tiktok}" target="_blank">🎵 TikTok</a><br>` : ""}
+    ${profile.socials?.github ? `<a href="${profile.socials.github}" target="_blank">💻 GitHub</a><br>` : ""}
+
+    <hr/>
+
+    ${getSpotifyEmbed(profile.spotify)}
+  `;
+}
+
+// ---------------- POSTS ----------------
+function createPost() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("posts").add({
+    text: postText.value,
+    name: profile.name || "User",
+    uid: user.uid,
+    time: Date.now()
+  });
+
+  postText.value = "";
+  loadFeed();
+}
+
+function loadFeed() {
+  feed.innerHTML = "";
+
+  db.collection("posts")
+    .orderBy("time", "desc")
+    .limit(20)
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        const p = doc.data();
+
+        feed.innerHTML += `
+          <div class="post">
+            <b>${p.name}</b>
+            <p>${p.text}</p>
+          </div>
+        `;
+      });
     });
-  }
-  
-  // 👤 OPEN PROFILE
-  function openProfile(id) {
-    const user = friends.find(f => f.id === id);
-  
-    const modal = document.getElementById("modal");
-    modal.classList.remove("hidden");
-  
-    modal.querySelector(".modal-content").innerHTML = `
-      <button onclick="closeModal()">✖</button>
-  
-      <img src="${user.banner}" class="banner">
-      <img src="${user.avatar}" class="profile-avatar">
-  
-      <h2>${user.nickname}</h2>
-      <p>${user.realName}</p>
-      <p>${user.bio}</p>
-  
-      <button onclick="likeUser('${user.id}')">❤️ ${user.likes}</button>
-      <button onclick="followUser('${user.id}')">👥 ${user.followers}</button>
-      <button onclick="deleteFriend('${user.id}')">🗑 Delete</button>
-    `;
-  }
-  
-  // ❤️ LIKE
-  function likeUser(id) {
-    const f = friends.find(x => x.id === id);
-  
-    friendsRef.doc(id).update({
-      likes: f.likes + 1
-    });
-  }
-  
-  // 👥 FOLLOW
-  function followUser(id) {
-    const f = friends.find(x => x.id === id);
-  
-    friendsRef.doc(id).update({
-      followers: f.followers + 1
-    });
-  }
-  
-  // 🗑 DELETE
-  function deleteFriend(id) {
-    friendsRef.doc(id).delete();
-  }
-  
-  // ❌ CLOSE MODAL
-  function closeModal() {
-    document.getElementById("modal").classList.add("hidden");
-  }
-  
-  // 🚀 START APP
-  loadFriends();
+}

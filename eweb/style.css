@@ -1,55 +1,47 @@
 body {
-    font-family: Arial;
-    background: #0b1220;
-    color: white;
-    text-align: center;
-  }
-  
-  .friend-card {
-    background: #1e293b;
-    margin: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    display: inline-block;
-    width: 200px;
-    cursor: pointer;
-  }
-  
-  .friend-card img {
-    width: 60px;
-    border-radius: 50%;
-  }
-  
-  /* MODAL */
-  #modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
-  .modal-content {
-    background: #0f172a;
-    margin: 5% auto;
-    padding: 15px;
-    width: 350px;
-    border-radius: 12px;
-  }
-  
-  /* PROFILE */
-  .banner {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-  
-  .profile-avatar {
-    width: 80px;
-    border-radius: 50%;
-    margin-top: -40px;
-    border: 3px solid #0f172a;
-  }
+  margin: 0;
+  font-family: Arial;
+  background: #0b0b10;
+  color: white;
+}
+
+.card {
+  background: #1a1a22;
+  margin: 15px auto;
+  padding: 15px;
+  width: 90%;
+  max-width: 520px;
+  border-radius: 10px;
+}
+
+input, textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px;
+  background: #111;
+  border: 1px solid #333;
+  color: white;
+  border-radius: 6px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: #4f46e5;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+button:hover {
+  background: #6366f1;
+}
+
+#feed .post {
+  background: #111;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
